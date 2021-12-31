@@ -16,17 +16,17 @@ const (
 	lengthMax int = 5000000 // maximum byte length
 )
 
-const (
-	prefix  string = "IMG_"
-	postfix string = ".jpg"
+var (
+	prefix       string = "IMG_"   // prefix + counter + postfix are used in targetFname()
+	counter             = 1000     // prefix + counter + postfix are used in targetFname()
+	postfix      string = ".jpg"   // prefix + counter + postfix are used in targetFname()
+	targetFolder string = "Photos" // target location for the generated files
 )
 
 type Key struct {
 	origName string
 	files    []string
 }
-
-var counter = 1000 // counter for file name, which consists of const prefix + var counter + const postfix. Code is made to assume it is always lenght 4.
 
 // splitFile takes a file name, splits the file into chunks of bytes and returns
 // a slice containing all chunks and an error.
@@ -103,9 +103,9 @@ func decrypt(b []byte) []byte {
 	return b
 }
 
-// storeFile takes a filename and a target folder and stores the corresponding
-// file in the target.
-func storeFile(fname, target string, data []byte) error {
+// storeImage takes a filename and stores the corresponding
+// data in the created filename.
+func storeImage(fname string, data []byte) error {
 	// Create file
 	file, err := os.Create(fname)
 	defer file.Close()
@@ -120,9 +120,22 @@ func storeFile(fname, target string, data []byte) error {
 	return nil
 }
 
+// targetFname returns a string representing a filename, based on const prefix +
+// var counter + const postfix and adds a 1 to counter.
+func targetFname() string {
+	// TODO: check if targetFname exists, if so, add 1000(?)
+	c := fmt.Sprint(counter)
+	if len(c) == 4 {
+		c = fmt.Sprint("0" + c)
+	}
+	c = fmt.Sprintf("%v%v%v", prefix, c, postfix)
+	counter += 1
+	return c
+}
+
 // imageFile takes a file name and a target directory, splits that filename
 // into a target directory and returns the key.
-func imageFile(fname, target string) ([]string, error) {
+func imageFile(fname, targetFolder string) ([]string, error) {
 	key := []string{}
 	output, err := splitFile(fname)
 	if err != nil {
@@ -131,23 +144,42 @@ func imageFile(fname, target string) ([]string, error) {
 	for _, v := range output {
 		v = encrypt(reverse(v))
 		targetFname := targetFname()
-		err = storeFile(targetFname, target, v)
+		err = storeImage(targetFolder+"\\"+targetFname, v)
 		if err != nil {
-			return key, fmt.Errorf("Error storing file '%v' into '%v' at '%v':\n%v\n", fname, targetFname, target, err)
+			return key, fmt.Errorf("Error storing file '%v' into '%v' at '%v':\n%v\n", fname, targetFname, targetFolder, err)
 		}
 		key = append(key, targetFname)
 	}
 	return key, nil
 }
 
-// targetFname returns a string representing a filename, based on const prefix +
-// var counter + const postfix and adds a 1 to counter.
-func targetFname() string {
-	c := fmt.Sprint(counter)
-	if len(c) == 4 {
-		c = fmt.Sprint("0" + c)
+// Imagine takes a slice of directories and returns the key
+// (ie which images belong to which file as part of which directory),
+// e.g. key[dir1][file1][1.jpg, 2.jpg].
+func Imagine(dirs []string) map[string]map[string][]string {
+	key := make(map[string]map[string][]string)
+	// create output folder
+	newDir(targetFolder)
+	for _, dir := range dirs {
+		dirRel := lastSegment(dir)
+		if key[dirRel] == nil {
+			key[dirRel] = map[string][]string{}
+		}
+		fnames, err := getFnames(dir)
+		if err != nil {
+			log.Printf("ERROR! Directory '%v' skipped due to error:\n%v", dir, err)
+		} else {
+			for _, fname := range fnames {
+				output, err := imageFile(fname, targetFolder)
+				if err != nil {
+					log.Printf("ERROR! File '%v' in dir %v not included due to error:\n%v", fname, dir, err)
+				} else {
+					// make fname and dir relative and add to key
+					fname = relPath(dir, fname)
+					key[dirRel][fname] = output
+				}
+			}
+		}
 	}
-	c = fmt.Sprintf("%v%v%v", prefix, c, postfix)
-	counter += 1
-	return c
+	return key
 }

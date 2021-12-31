@@ -135,7 +135,7 @@ func TestStoreFile(t *testing.T) {
 	//fname, target string, data []byte
 	fname := "test.txt"
 	target := "."
-	err := storeFile(fname, target, []byte("test"))
+	err := storeImage(target+"\\"+fname, []byte("test"))
 	if err != nil {
 		t.Errorf("Error storing file '%v'", fname)
 	}
@@ -167,3 +167,8 @@ func TestTargetFile(t *testing.T) {
 		}
 	}
 }
+
+// TODO: move to examples folder
+// func TestImaginer(t *testing.T) {
+// 	fmt.Println(Imagine([]string{".\\examples"}))
+// }

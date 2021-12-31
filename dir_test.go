@@ -75,12 +75,11 @@ func TestRelPath(t *testing.T) {
 		{"c:\\test1", "c:\\test1\\test2\\test3", "test2\\test3"},
 		{"c:\\test1\\test2\\test3", "c:\\test1\\test2\\test3\\test4", "test4"},
 		{"c:\\test1", "c:\\test1\\test2\\test3\\test4", "test2\\test3\\test4"},
+		{"c:\\test1", "c:\\test1\\test2\\test3\\test4.txt", "test2\\test3\\test4.txt"},
+		{".\\examples", ".\\examples\\IMG_0380.jpg", "IMG_0380.jpg"},
 	}
 	for _, c := range cases {
-		got, err := relPath(c.root, c.path)
-		if err != nil {
-			t.Error(err)
-		}
+		got := relPath(c.root, c.path)
 		if c.want != got {
 			t.Errorf("Want: '%v' Got: '%v'", c.want, got)
 		}

@@ -86,17 +86,16 @@ func lastSegment(p string) string {
 }
 
 // relPath takes two paths and returns the path without the root.
-// If root does not exist in path, it returns an error.
-func relPath(root, path string) (string, error) {
+func relPath(root, path string) string {
 	// Check and add backslash to root for comparison to path
 	if string(root[len(root)-1]) != "\\" {
 		root += "\\"
 	}
 	// Check that path is in root
 	if root != path[:len(root)] {
-		return "", fmt.Errorf("Path not in root.\nRoot:\t%v\nPath:\t%v\n", root, path)
+		log.Fatalf("Path not in root.\nRoot:\t%v\nPath:\t%v\n", root, path)
 	}
 	//	Remove root from path
 	path = path[len(root):]
-	return path, nil
+	return path
 }
