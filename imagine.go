@@ -108,6 +108,17 @@ func decrypt(b []byte) []byte {
 	return b
 }
 
+// transform takes a slice of byte, and returns the reversed and encrypted slice.
+func transform(b []byte) []byte {
+	return encrypt(reverse(b))
+}
+
+// deTransform takes a slice of byte, and returns the de-encrypted and reversed
+// slice.
+func deTransform(b []byte) []byte {
+	return reverse(decrypt(b))
+}
+
 // storeImage takes a filename and stores the corresponding
 // data in the created filename.
 func storeImage(fname string, data []byte) error {
@@ -147,7 +158,7 @@ func imageFile(fname, targetFolder string) ([]string, error) {
 		return key, fmt.Errorf("Error splitting '%v':\n%v\n", fname, err)
 	}
 	for _, v := range output {
-		v = encrypt(reverse(v))
+		v = transform(v)
 		targetFname := targetFname()
 		err = storeImage(targetFolder+"\\"+targetFname, v)
 		if err != nil {
@@ -158,13 +169,15 @@ func imageFile(fname, targetFolder string) ([]string, error) {
 	return key, nil
 }
 
-// Imagine takes a slice of directories and returns the key
-// (ie which images belong to which file as part of which directory),
-// e.g. key[dir1][file1][1.jpg, 2.jpg].
-func Imagine(dirs []string) map[string]map[string][]string {
+/* Imagine takes a slice of directories and creates images in ImageFolder
+containing the data from all the files in the directories. In case of errors,
+the file is skipped */
+func Imagine(dirs []string) {
 	key := make(map[string]map[string][]string)
 	// create output folder
 	newDir(ImageFolder)
+	// get fname to store key (ie first image)
+	keyFname := targetFname()
 	for _, dir := range dirs {
 		dirRel := lastSegment(dir)
 		if key[dirRel] == nil {
@@ -187,12 +200,14 @@ func Imagine(dirs []string) map[string]map[string][]string {
 		}
 	}
 	// TODO: Transform and store key as a the first image
-	return key
+	storekey(keyFname)
+
+	return
 }
 
 // deImageFile takes ... and returns the ...
 func deImageFile(fname string, imgFnames []string) error {
-	// Create original file
+	// Create "original" file
 	file, err := os.Create(fname)
 	if err != nil {
 		return fmt.Errorf("Error opening file '%v':\n%v\n", fname, err)
@@ -202,18 +217,18 @@ func deImageFile(fname string, imgFnames []string) error {
 	var off int
 	for _, imgFname := range imgFnames {
 		// Read
-		content, err := ioutil.ReadFile(imgFname)
+		b, err := ioutil.ReadFile(imgFname)
 		if err != nil {
 			return fmt.Errorf("Error transforming file '%v' back into '%v'\n%v\n", imgFname, fname, err)
 		}
-		// Convert
-		content = reverse(decrypt(content))
+		// Transform
+		b = deTransform(b)
 		// Write
-		_, err = file.WriteAt(content, int64(off))
+		_, err = file.WriteAt(b, int64(off))
 		if err != nil {
 			return fmt.Errorf("Error writing file '%v' back into '%v'\n%v\n", imgFname, fname, err)
 		}
-		off += len(content)
+		off += len(b)
 	}
 	return nil
 }
@@ -227,4 +242,14 @@ func DeImagine() {
 	// TODO: for each file in the key: deImagine()
 
 	return
+}
+
+// TODO: Transform and store key as a the first image
+func storekey(keyFname string) error {
+	return nil
+}
+
+// TODO: get key from first file in output folder
+func getKey() error {
+	return nil
 }
