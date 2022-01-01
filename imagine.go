@@ -3,11 +3,14 @@ package imagine
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
 	"time"
 )
+
+// TODO v2: add a counter for progress tracking (how many files and how many done)
 
 var _ = log.Printf // TODO: remove when done
 
@@ -17,11 +20,13 @@ const (
 )
 
 var (
-	prefix       string = "IMG_"   // prefix + counter + postfix are used in targetFname()
-	counter             = 1000     // prefix + counter + postfix are used in targetFname()
-	postfix      string = ".jpg"   // prefix + counter + postfix are used in targetFname()
-	targetFolder string = "Photos" // target location for the generated files
+	Prefix      string = "IMG_"   // prefix + counter + postfix are used in targetFname()
+	Counter            = 1000     // prefix + counter + postfix are used in targetFname()
+	Postfix     string = ".jpg"   // prefix + counter + postfix are used in targetFname()
+	ImageFolder string = "Photos" // target location for the generated files
 )
+
+var outputFolder string // represents the folder where the output from deImagine() should be stored
 
 type Key struct {
 	origName string
@@ -124,12 +129,12 @@ func storeImage(fname string, data []byte) error {
 // var counter + const postfix and adds a 1 to counter.
 func targetFname() string {
 	// TODO: check if targetFname exists, if so, add 1000(?)
-	c := fmt.Sprint(counter)
+	c := fmt.Sprint(Counter)
 	if len(c) == 4 {
 		c = fmt.Sprint("0" + c)
 	}
-	c = fmt.Sprintf("%v%v%v", prefix, c, postfix)
-	counter += 1
+	c = fmt.Sprintf("%v%v%v", Prefix, c, Postfix)
+	Counter += 1
 	return c
 }
 
@@ -159,7 +164,7 @@ func imageFile(fname, targetFolder string) ([]string, error) {
 func Imagine(dirs []string) map[string]map[string][]string {
 	key := make(map[string]map[string][]string)
 	// create output folder
-	newDir(targetFolder)
+	newDir(ImageFolder)
 	for _, dir := range dirs {
 		dirRel := lastSegment(dir)
 		if key[dirRel] == nil {
@@ -170,7 +175,7 @@ func Imagine(dirs []string) map[string]map[string][]string {
 			log.Printf("ERROR! Directory '%v' skipped due to error:\n%v", dir, err)
 		} else {
 			for _, fname := range fnames {
-				output, err := imageFile(fname, targetFolder)
+				output, err := imageFile(fname, ImageFolder)
 				if err != nil {
 					log.Printf("ERROR! File '%v' in dir %v not included due to error:\n%v", fname, dir, err)
 				} else {
@@ -181,5 +186,45 @@ func Imagine(dirs []string) map[string]map[string][]string {
 			}
 		}
 	}
+	// TODO: Transform and store key as a the first image
 	return key
+}
+
+// deImageFile takes ... and returns the ...
+func deImageFile(fname string, imgFnames []string) error {
+	// Create original file
+	file, err := os.Create(fname)
+	if err != nil {
+		return fmt.Errorf("Error opening file '%v':\n%v\n", fname, err)
+	}
+	defer file.Close()
+	// Read, convert and write each image into the "original" file
+	var off int
+	for _, imgFname := range imgFnames {
+		// Read
+		content, err := ioutil.ReadFile(imgFname)
+		if err != nil {
+			return fmt.Errorf("Error transforming file '%v' back into '%v'\n%v\n", imgFname, fname, err)
+		}
+		// Convert
+		content = reverse(decrypt(content))
+		// Write
+		_, err = file.WriteAt(content, int64(off))
+		if err != nil {
+			return fmt.Errorf("Error writing file '%v' back into '%v'\n%v\n", imgFname, fname, err)
+		}
+		off += len(content)
+	}
+	return nil
+}
+
+// TODO: Description DeImagine
+func DeImagine() {
+	// TODO: read all files from ImageFolder
+
+	// TODO: take first file and transform to key
+
+	// TODO: for each file in the key: deImagine()
+
+	return
 }

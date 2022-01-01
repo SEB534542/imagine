@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	//	"os"
+	"os"
 	"testing"
 )
 
@@ -14,45 +14,45 @@ var (
 	_ = log.Printf
 )
 
-// func TestDir(t *testing.T) {
-// 	dir := ".\\test_folder"
-// 	fname := "temp.txt"
-// 	// Create dir for testing
-// 	err := newDir(dir)
-// 	if err != nil {
-// 		t.Errorf("Error creating new folder: '%v'\n%v", dir, err)
-// 	}
+func TestDir(t *testing.T) {
+	dir := ".\\test_folder"
+	fname := "temp.txt"
+	// Create dir for testing
+	err := newDir(dir)
+	if err != nil {
+		t.Errorf("Error creating new folder: '%v'\n%v", dir, err)
+	}
 
-// 	// Test if folder is a folder
-// 	if b := isDir(dir); b != true {
-// 		t.Errorf("Error check isDir: Want:'%v' got: '%v'", true, b)
-// 	}
+	// Test if folder is a folder
+	if b := isDir(dir); b != true {
+		t.Errorf("Error check isDir: Want:'%v' got: '%v'", true, b)
+	}
 
-// 	// Create folder for testing
-// 	file, err := os.Create(dir + "\\" + fname)
-// 	file.Close()
-// 	if err != nil {
-// 		t.Errorf("Error creating file '%v':\n%v", fname, err)
-// 	}
+	// Create folder for testing
+	file, err := os.Create(dir + "\\" + fname)
+	file.Close()
+	if err != nil {
+		t.Errorf("Error creating file '%v':\n%v", fname, err)
+	}
 
-// 	// Test if file is a file
-// 	if b := isFile(dir + "\\" + fname); b != true {
-// 		t.Errorf("Error check isFile: want '%v' got '%v'", true, b)
-// 	}
+	// Test if file is a file
+	if b := isFile(dir + "\\" + fname); b != true {
+		t.Errorf("Error check isFile: want '%v' got '%v'", true, b)
+	}
 
-// 	//
-// 	output, err := getFnames(dir)
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
-// 	if output[0] != dir+"\\"+fname {
-// 		t.Errorf("Want: %v. Got: %v", dir+"\\"+fname, output[0])
-// 	}
+	//
+	output, err := getFnames(dir)
+	if err != nil {
+		t.Error(err)
+	}
+	if output[0] != dir+"\\"+fname {
+		t.Errorf("Want: %v. Got: %v", dir+"\\"+fname, output[0])
+	}
 
-// 	// Remove file + directory
-// 	os.Remove(dir + "\\" + fname)
-// 	os.Remove(dir)
-// }
+	// Remove file + directory
+	os.Remove(dir + "\\" + fname)
+	os.Remove(dir)
+}
 
 func TestLastSegment(t *testing.T) {
 	cases := []struct{ input, want string }{

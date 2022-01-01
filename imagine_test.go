@@ -143,7 +143,7 @@ func TestStoreFile(t *testing.T) {
 }
 
 func TestTargetFile(t *testing.T) {
-	counter = 1000
+	Counter = 1000
 	cases := []struct {
 		counter int
 		want1   string
@@ -154,7 +154,7 @@ func TestTargetFile(t *testing.T) {
 		{99999, "IMG_99999.jpg", "IMG_100000.jpg"},
 	}
 	for _, c := range cases {
-		counter = c.counter
+		Counter = c.counter
 		// Round 1
 		got := targetFname()
 		if got != c.want1 {
@@ -167,8 +167,3 @@ func TestTargetFile(t *testing.T) {
 		}
 	}
 }
-
-// TODO: move to examples folder
-// func TestImaginer(t *testing.T) {
-// 	fmt.Println(Imagine([]string{".\\examples"}))
-// }
