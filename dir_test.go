@@ -1,17 +1,8 @@
 package imagine
 
 import (
-	"fmt"
-	"log"
-
 	"os"
 	"testing"
-)
-
-// TODO: remove when done
-var (
-	_ = fmt.Printf
-	_ = log.Printf
 )
 
 func TestDir(t *testing.T) {
@@ -22,24 +13,20 @@ func TestDir(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error creating new folder: '%v'\n%v", dir, err)
 	}
-
 	// Test if folder is a folder
 	if b := isDir(dir); b != true {
 		t.Errorf("Error check isDir: Want:'%v' got: '%v'", true, b)
 	}
-
 	// Create folder for testing
 	file, err := os.Create(dir + "\\" + fname)
 	file.Close()
 	if err != nil {
 		t.Errorf("Error creating file '%v':\n%v", fname, err)
 	}
-
 	// Test if file is a file
 	if b := isFile(dir + "\\" + fname); b != true {
 		t.Errorf("Error check isFile: want '%v' got '%v'", true, b)
 	}
-
 	//
 	output, err := getFnames(dir)
 	if err != nil {
@@ -48,7 +35,6 @@ func TestDir(t *testing.T) {
 	if output[0] != dir+"\\"+fname {
 		t.Errorf("Want: %v. Got: %v", dir+"\\"+fname, output[0])
 	}
-
 	// Remove file + directory
 	os.Remove(dir + "\\" + fname)
 	os.Remove(dir)
@@ -84,8 +70,4 @@ func TestRelPath(t *testing.T) {
 			t.Errorf("Want: '%v' Got: '%v'", c.want, got)
 		}
 	}
-}
-
-func TestCreateSubdirs(t *testing.T) {
-	checkSubdirs(".\\test\\test2\\file.txt")
 }

@@ -10,23 +10,17 @@ import (
 	"time"
 )
 
-// TODO v2: add a counter for progress tracking (how many files and how many done)
-
-var _ = log.Printf // TODO: remove when done
-
 const (
 	lengthMin int = 2000000 // minimum byte length
 	lengthMax int = 5000000 // maximum byte length
 )
 
 var (
-	Prefix      string = "IMG_"   // prefix + counter + postfix are used in targetFname()
-	Counter            = 1000     // prefix + counter + postfix are used in targetFname()
-	Postfix     string = ".jpg"   // prefix + counter + postfix are used in targetFname()
-	ImageFolder string = "Photos" // target location for the generated files
+	Prefix  string = "IMG_"   // prefix + counter + postfix are used in targetFname()
+	Counter        = 1000     // prefix + counter + postfix are used in targetFname()
+	Postfix string = ".jpg"   // prefix + counter + postfix are used in targetFname()
+	trg     string = "Photos" // target location for the generated files
 )
-
-var outputFolder = "Output" // represents the folder where the output from deImagine() should be stored
 
 type Key struct {
 	origName string
@@ -139,7 +133,6 @@ func storeImage(fname string, data []byte) error {
 // targetFname returns a string representing a filename, based on const prefix +
 // var counter + const postfix and adds a 1 to counter.
 func targetFname() string {
-	// TODO: check if targetFname exists, if so, add 1000(?)
 	c := fmt.Sprint(Counter)
 	if len(c) == 4 {
 		c = fmt.Sprint("0" + c)
@@ -151,7 +144,7 @@ func targetFname() string {
 
 // imageFile takes a file name and a target directory, splits that filename
 // into a target directory and returns the key.
-func imageFile(fname, targetFolder string) ([]string, error) {
+func imageFile(fname, trg string) ([]string, error) {
 	key := []string{}
 	output, err := splitFile(fname)
 	if err != nil {
@@ -159,12 +152,12 @@ func imageFile(fname, targetFolder string) ([]string, error) {
 	}
 	for _, v := range output {
 		v = transform(v)
-		targetFname := targetFname()
-		err = storeImage(targetFolder+"\\"+targetFname, v)
+		trgFname := targetFname()
+		err = storeImage(trg+"\\"+trgFname, v)
 		if err != nil {
-			return key, fmt.Errorf("Error storing file '%v' into '%v' at '%v':\n%v\n", fname, targetFname, targetFolder, err)
+			return key, fmt.Errorf("Error storing file '%v' into '%v' at '%v':\n%v\n", fname, trgFname, trg, err)
 		}
-		key = append(key, targetFname)
+		key = append(key, trgFname)
 	}
 	return key, nil
 }
@@ -172,11 +165,10 @@ func imageFile(fname, targetFolder string) ([]string, error) {
 /* Imagine takes a slice of directories and creates images in ImageFolder
 containing the data from all the files in the directories. In case of errors,
 the file is skipped */
-func Imagine(dirs []string) {
-	// TODO: add outputFolder as a parameter (and in all subsequent files + testfiles)
+func Imagine(dirs []string, trg string) {
 	key := make(map[string]map[string][]string)
 	// create output folder
-	newDir(ImageFolder)
+	newDir(trg)
 	// get fname to store key (ie first image)
 	keyFname := targetFname()
 	for _, dir := range dirs {
@@ -189,7 +181,7 @@ func Imagine(dirs []string) {
 			log.Printf("ERROR! Directory '%v' skipped due to error:\n%v", dir, err)
 		} else {
 			for _, fname := range fnames {
-				output, err := imageFile(fname, ImageFolder)
+				output, err := imageFile(fname, trg)
 				if err != nil {
 					log.Printf("ERROR! File '%v' in dir %v not included due to error:\n%v", fname, dir, err)
 				} else {
@@ -200,12 +192,12 @@ func Imagine(dirs []string) {
 			}
 		}
 	}
-	saveToGob(key, ImageFolder+"\\"+keyFname)
+	saveToGob(key, trg+"\\"+keyFname)
 	return
 }
 
 // deImageFile takes ... and returns the ...
-func deImageFile(fname string, imgFnames []string) error {
+func deImageFile(fname, src string, imgFnames []string) error {
 	// Create "original" file
 	file, err := os.Create(fname)
 	if err != nil {
@@ -216,7 +208,7 @@ func deImageFile(fname string, imgFnames []string) error {
 	var off int
 	for _, imgFname := range imgFnames {
 		// Read
-		imgFname = ImageFolder + "\\" + imgFname
+		imgFname = src + "\\" + imgFname
 		b, err := ioutil.ReadFile(imgFname)
 		if err != nil {
 			return fmt.Errorf("Error transforming file '%v' back into '%v'\n%v\n", imgFname, fname, err)
@@ -233,25 +225,26 @@ func deImageFile(fname string, imgFnames []string) error {
 	return nil
 }
 
-// TODO: Description DeImagine
-func DeImagine(keyFname string) {
+// DeImagine takes a source folder, target folder and a key to de-imagine the
+// files in the source folder and create the files in the target folder
+func DeImagine(src, trg, keyFname string) {
 	var key map[string]map[string][]string
-	newDir(outputFolder)
+	newDir(trg)
 	// Read key
-	readGob(&key, ImageFolder+"\\"+keyFname)
+	readGob(&key, src+"\\"+keyFname)
 	// For each directory
 	for dir, fnames := range key {
 		// Create new directory
-		dir = outputFolder + "\\" + dir
+		dir = trg + "\\" + dir
 		err := newDir(dir)
 		if err != nil {
-			log.Panic("Error:", err) // TODO: update error handling
+			log.Panic("Error:", err)
 		}
 		for fname, imgFnames := range fnames {
 			checkSubdirs(dir + "\\" + fname)
-			err = deImageFile(dir+"\\"+fname, imgFnames)
+			err = deImageFile(dir+"\\"+fname, src, imgFnames)
 			if err != nil {
-				log.Panic("Error:", err) // TODO: update error handling
+				log.Panic("Error:", err)
 			}
 		}
 	}

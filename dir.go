@@ -8,12 +8,6 @@ import (
 	"strings"
 )
 
-// TODO: remove when done
-var (
-	_ = fmt.Printf
-	_ = log.Printf
-)
-
 // newDir takes a folder path, creates a new directory and returns an error if
 // it cannot create the new file and does not already exist.
 func newDir(dir string) error {
@@ -102,7 +96,7 @@ func relPath(root, path string) string {
 
 // checkSubdirs checks every level of the fname path if the subdirectory exists.
 func checkSubdirs(fname string) {
-	// TODO: check if there is a more efficient way
+	// TODO: check if there is a more efficient way then re-checking every time
 	// Split fname path
 	x := strings.Split(fname, "\\")
 	if len(x) < 2 {

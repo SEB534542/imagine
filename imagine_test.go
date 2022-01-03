@@ -6,16 +6,6 @@ import (
 	"testing"
 )
 
-// TODO: remove when done
-var (
-	_ = fmt.Printf
-)
-
-// TODO: Create and remove below test file with input from want variable
-var want = "sfsdgdfhfghdfg ddf gdgdf gdfgfgffg3534"
-var fnameWant = "test_want.txt"
-var fnameGot = "test_got.txt"
-
 func TestRandom(t *testing.T) {
 	for i := 0; i < 1000; i++ {
 		x := random()
@@ -26,6 +16,8 @@ func TestRandom(t *testing.T) {
 }
 
 func TestSplitFile(t *testing.T) {
+	want := "sfsdgdfhfghdfg ddf gdgdf gdfgfgffg3534"
+	fnameWant, fnameGot := "test_want.txt", "test_got.txt"
 	// Create file for testing
 	file, err := os.Create(fnameWant)
 	if err != nil {
@@ -34,13 +26,11 @@ func TestSplitFile(t *testing.T) {
 	// Write test data in file
 	_, err = file.Write([]byte(want))
 	file.Close()
-
 	// Split file
 	output, err := splitFile(fnameWant)
 	if err != nil {
 		t.Errorf("Error splitting file '%v':\n'%v'", fnameWant, err)
 	}
-
 	// Evaluate want with got
 	var got []byte
 	for _, v := range output {
@@ -166,4 +156,12 @@ func TestTargetFile(t *testing.T) {
 			t.Errorf("Target filename incorrect. Want: '%v'. Got: '%v'", c.want2, got)
 		}
 	}
+}
+
+func ExampleImagine() {
+	Imagine([]string{".\\Test files"}, ".\\Photos")
+}
+
+func ExampleDeImagine() {
+	DeImagine(".\\Photos", ".\\Output", "IMG_01000.jpg")
 }
