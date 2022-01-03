@@ -26,7 +26,7 @@ var (
 	ImageFolder string = "Photos" // target location for the generated files
 )
 
-var outputFolder string // represents the folder where the output from deImagine() should be stored
+var outputFolder = "Output" // represents the folder where the output from deImagine() should be stored
 
 type Key struct {
 	origName string
@@ -173,6 +173,7 @@ func imageFile(fname, targetFolder string) ([]string, error) {
 containing the data from all the files in the directories. In case of errors,
 the file is skipped */
 func Imagine(dirs []string) {
+	// TODO: add outputFolder as a parameter (and in all subsequent files + testfiles)
 	key := make(map[string]map[string][]string)
 	// create output folder
 	newDir(ImageFolder)
@@ -199,9 +200,7 @@ func Imagine(dirs []string) {
 			}
 		}
 	}
-	// TODO: Transform and store key as a the first image
-	storekey(keyFname)
-
+	saveToGob(key, ImageFolder+"\\"+keyFname)
 	return
 }
 
@@ -217,6 +216,7 @@ func deImageFile(fname string, imgFnames []string) error {
 	var off int
 	for _, imgFname := range imgFnames {
 		// Read
+		imgFname = ImageFolder + "\\" + imgFname
 		b, err := ioutil.ReadFile(imgFname)
 		if err != nil {
 			return fmt.Errorf("Error transforming file '%v' back into '%v'\n%v\n", imgFname, fname, err)
@@ -234,22 +234,42 @@ func deImageFile(fname string, imgFnames []string) error {
 }
 
 // TODO: Description DeImagine
-func DeImagine() {
-	// TODO: read all files from ImageFolder
-
-	// TODO: take first file and transform to key
-
-	// TODO: for each file in the key: deImagine()
-
-	return
+func DeImagine(keyFname string) {
+	var key map[string]map[string][]string
+	newDir(outputFolder)
+	// Read key
+	readGob(&key, ImageFolder+"\\"+keyFname)
+	// For each directory
+	for dir, fnames := range key {
+		// Create new directory
+		dir = outputFolder + "\\" + dir
+		err := newDir(dir)
+		if err != nil {
+			log.Panic("Error:", err) // TODO: update error handling
+		}
+		for fname, imgFnames := range fnames {
+			checkSubdirs(dir + "\\" + fname)
+			err = deImageFile(dir+"\\"+fname, imgFnames)
+			if err != nil {
+				log.Panic("Error:", err) // TODO: update error handling
+			}
+		}
+	}
 }
 
-// TODO: Transform and store key as a the first image
-func storekey(keyFname string) error {
-	return nil
-}
-
-// TODO: get key from first file in output folder
-func getKey() error {
+// storeFile takes a filename and stores the corresponding
+// data in the created filename.
+func storeFile(fname string, data []byte) error {
+	// Create file
+	file, err := os.Create(fname)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+	// Write test data in file
+	_, err = file.Write(data)
+	if err != nil {
+		return err
+	}
 	return nil
 }

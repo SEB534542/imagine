@@ -21,9 +21,10 @@ func saveToGob(i interface{}, fname string) error {
 	}
 
 	// Tranform data
+	b := transform(data.Bytes())
 
 	// Store data
-	err = ioutil.WriteFile(fname, data.Bytes(), 0644)
+	err = ioutil.WriteFile(fname, b, 0644)
 	if err != nil {
 		return fmt.Errorf("Error storing '%v': %v", fname, err)
 	}
@@ -43,8 +44,9 @@ func readGob(i interface{}, fname string) error {
 	}
 
 	// Transform data
+	b := deTransform(content)
 
-	y := bytes.NewBuffer(content)
+	y := bytes.NewBuffer(b)
 	data = *y
 
 	// Decode (receive) and print the values.

@@ -99,3 +99,18 @@ func relPath(root, path string) string {
 	path = path[len(root):]
 	return path
 }
+
+// checkSubdirs checks every level of the fname path if the subdirectory exists.
+func checkSubdirs(fname string) {
+	// TODO: check if there is a more efficient way
+	// Split fname path
+	x := strings.Split(fname, "\\")
+	if len(x) < 2 {
+		return
+	}
+	path := x[0]
+	for _, v := range x[1 : len(x)-1] {
+		path += "\\" + v
+		newDir(path)
+	}
+}

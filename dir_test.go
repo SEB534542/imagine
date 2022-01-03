@@ -85,3 +85,7 @@ func TestRelPath(t *testing.T) {
 		}
 	}
 }
+
+func TestCreateSubdirs(t *testing.T) {
+	checkSubdirs(".\\test\\test2\\file.txt")
+}
