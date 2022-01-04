@@ -159,9 +159,9 @@ func TestTargetFile(t *testing.T) {
 }
 
 func ExampleImagine() {
-	Imagine([]string{".\\Test files"}, ".\\Photos")
+	fmt.Println(Imagine([]string{".\\Test files"}, ".\\Photos"))
 }
 
 func ExampleDeImagine() {
-	DeImagine(".\\Photos", ".\\Output", "IMG_01000.jpg")
+	fmt.Println(DeImagine(".\\Photos", ".\\Output", "IMG_01000.jpg"))
 }

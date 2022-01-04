@@ -15,17 +15,13 @@ const (
 	lengthMax int = 5000000 // maximum byte length
 )
 
+// Encrypted images are named as follows:  Prefix + Counter + Postfix,
+// through targetFname.
 var (
-	Prefix  string = "IMG_"   // prefix + counter + postfix are used in targetFname()
-	Counter        = 1000     // prefix + counter + postfix are used in targetFname()
-	Postfix string = ".jpg"   // prefix + counter + postfix are used in targetFname()
-	trg     string = "Photos" // target location for the generated files
+	Prefix  string = "IMG_" // E.g. "IMG_"
+	Counter        = 1000   // Any number with a lenght less than 5 will be formatted with leading zeros. E.g. 500 will be formatted to 00500
+	Postfix string = ".jpg" // E.g. ".jpg"
 )
-
-type Key struct {
-	origName string
-	files    []string
-}
 
 // splitFile takes a file name, splits the file into chunks of bytes and returns
 // a slice containing all chunks and an error.
@@ -162,10 +158,10 @@ func imageFile(fname, trg string) ([]string, error) {
 	return key, nil
 }
 
-/* Imagine takes a slice of directories and creates images in ImageFolder
-containing the data from all the files in the directories. In case of errors,
-the file is skipped */
-func Imagine(dirs []string, trg string) {
+// Imagine takes a slice of directories and creates images in ImageFolder
+// containing the transformed data from all the files in the directories.
+// In case of errors, the file is skipped and added to the error message returned.
+func Imagine(dirs []string, trg string) (err error) {
 	key := make(map[string]map[string][]string)
 	// create output folder
 	newDir(trg)
@@ -176,14 +172,14 @@ func Imagine(dirs []string, trg string) {
 		if key[dirRel] == nil {
 			key[dirRel] = map[string][]string{}
 		}
-		fnames, err := getFnames(dir)
-		if err != nil {
-			log.Printf("ERROR! Directory '%v' skipped due to error:\n%v", dir, err)
+		fnames, err1 := getFnames(dir)
+		if err1 != nil {
+			err = fmt.Errorf("%vERROR! Directory '%v' skipped due to error:\n%v\n", err, dir, err1)
 		} else {
 			for _, fname := range fnames {
-				output, err := imageFile(fname, trg)
-				if err != nil {
-					log.Printf("ERROR! File '%v' in dir %v not included due to error:\n%v", fname, dir, err)
+				output, err1 := imageFile(fname, trg)
+				if err1 != nil {
+					log.Printf("ERROR! File '%v' in dir %v not included due to error:\n%v", fname, dir, err1)
 				} else {
 					// make fname and dir relative and add to key
 					fname = relPath(dir, fname)
@@ -225,9 +221,10 @@ func deImageFile(fname, src string, imgFnames []string) error {
 	return nil
 }
 
-// DeImagine takes a source folder, target folder and a key to de-imagine the
-// files in the source folder and create the files in the target folder
-func DeImagine(src, trg, keyFname string) {
+// DeImagine takes a source folder, target folder and a key to transform the
+// filesin the source folder and create the files in the target folder using
+// the key stored in the keyFname and returns an error.
+func DeImagine(src, trg, keyFname string) (err error) {
 	var key map[string]map[string][]string
 	newDir(trg)
 	// Read key
@@ -236,18 +233,20 @@ func DeImagine(src, trg, keyFname string) {
 	for dir, fnames := range key {
 		// Create new directory
 		dir = trg + "\\" + dir
-		err := newDir(dir)
-		if err != nil {
-			log.Panic("Error:", err)
+		err1 := newDir(dir)
+		if err1 != nil {
+			err = fmt.Errorf("%vError creating new dir '%v': %v\n", err, dir, err1)
+			continue
 		}
 		for fname, imgFnames := range fnames {
 			checkSubdirs(dir + "\\" + fname)
-			err = deImageFile(dir+"\\"+fname, src, imgFnames)
-			if err != nil {
-				log.Panic("Error:", err)
+			err1 = deImageFile(dir+"\\"+fname, src, imgFnames)
+			if err1 != nil {
+				err = fmt.Errorf("%vError creating file '%v' in dir '%v': %v\n", err, fname, dir, err1)
 			}
 		}
 	}
+	return
 }
 
 // storeFile takes a filename and stores the corresponding

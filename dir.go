@@ -1,4 +1,3 @@
-// Package imagine implements logic to encrypt and decrypt files as images.
 package imagine
 
 import (
