@@ -174,12 +174,15 @@ func Imagine(dirs []string, trg string) (err error) {
 		}
 		fnames, err1 := getFnames(dir)
 		if err1 != nil {
-			err = fmt.Errorf("%vERROR! Directory '%v' skipped due to error:\n%v\n", err, dir, err1)
+			if err == nil {
+				err = fmt.Errorf("")
+			}
+			err = fmt.Errorf("%vDirectory '%v' skipped due to error:\n%v\n", err, dir, err1)
 		} else {
 			for _, fname := range fnames {
 				output, err1 := imageFile(fname, trg)
 				if err1 != nil {
-					log.Printf("ERROR! File '%v' in dir %v not included due to error:\n%v", fname, dir, err1)
+					log.Printf("File '%v' in dir %v not included due to error:\n%v", fname, dir, err1)
 				} else {
 					// make fname and dir relative and add to key
 					fname = relPath(dir, fname)
