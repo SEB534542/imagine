@@ -192,7 +192,9 @@ func Imagine(dirs []string, trg string) (err error) {
 	return
 }
 
-// deImageFile takes ... and returns the ...
+// deImageFile takes a file name, source folder and list of all 'images' that
+// make up the file. It transforms the image(s) into the file and returns any
+// errors.
 func deImageFile(fname, src string, imgFnames []string) error {
 	// Create "original" file
 	file, err := os.Create(fname)
